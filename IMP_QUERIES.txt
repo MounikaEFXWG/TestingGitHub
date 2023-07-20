@@ -1,0 +1,34 @@
+SELECT  SOURCE_ID FROM CORE.H_DS hd INNER JOIN core.S_DS_LASTV sdl ON hd.DS_SID = SDL.DS_SID
+WHERE SOURCE_ID LIKE '%19767%'
+		
+SELECT  hd.DS_SID FROM CORE.H_DS hd INNER JOIN core.S_DS_LASTV sdl ON hd.DS_SID = SDL.DS_SID
+WHERE SOURCE_ID LIKE '%19767(PROD)%' --2110
+	AND hd.DS_SID NOT IN (	
+	SELECT	
+		DISTINCT DS_SID
+	FROM	
+		PUB_RAVEN1.DM1_DS_LASTV dxe WHERE BAYER_STUDY_NUM = '19767')--0 records
+------------------------------------------------------------------------------------------------
+gives target count with source id for sub domain
+
+SELECT DISTINCT DID 
+FROM (
+    SELECT hd.DS_SID, hd.SOURCE_ID AS DID 
+    FROM CORE.H_DS hd 
+    INNER JOIN core.S_DS_RAND sdl ON hd.DS_SID = sdl.DS_SID 
+    WHERE SOURCE_ID LIKE '%19767%'
+) x 
+INNER JOIN PUB_RAVEN.DM1_DS_RAND dr ON x.DS_SID = dr.DS_SID
+
+when there is no sub domain
+
+SELECT DISTINCT DID FROM (SELECT hd.DM_SID, hd.SOURCE_ID AS DID 
+FROM CORE.H_DM hd  
+INNER JOIN PUB_RAVEN.DM1_DM dr ON dr.DM_SID = hd.DM_SID
+WHERE SOURCE_ID LIKE '%19767(PROD)%')
+
+===================================================================================================
+QUERY TO FETCH RECORDS WHICH ARE HAVING MORE THAN 1 INSTANCE IDs for 1 RECORD ID in LSH source table
+
+SELECT RECORD_ID, COUNT(1) FROM (SELECT RECORD_ID,INSTANCE_ID, COUNT(1)FROM BA_19829_RAVEN_PROD.B_DM GROUP BY RECORD_ID,INSTANCE_ID
+ORDER BY RECORD_ID) GROUP BY RECORD_ID HAVING COUNT(1)>1
